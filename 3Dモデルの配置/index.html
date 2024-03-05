@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Model Viewer</title>
+
+    <style>
+      #myCanvas {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: -1; /* 他の要素の背景に配置 */
+      }
+      p {
+        font-size:clamp(14px, 1.5vw, 18px);
+      }
+      .object {
+        position: relative;
+      }
+    </style>
+</head>
+<body>
+	<div class="object">
+		<h1>こちらはテストサイトです。</h1>
+		<p>ダミーテキスト</p>
+    <!-- <img src="../parcel/model/image/01.JPEG" alt=""> -->
+	</div>
+
+  <canvas id="myCanvas"></canvas>
+
+    <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/build/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/examples/js/loaders/GLTFLoader.js"></script>
+    <script>
+				// Three.jsを使った基本的なセットアップ
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('myCanvas') });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+        scene.background = new THREE.Color(0xffffff); // 0xffffffは白色を表す
+
+        // 3Dモデルの読み込みとシーンへの追加...
+        const loader = new THREE.GLTFLoader();
+        loader.load('../parcel/model/sample01.glb', function(gltf) {
+            model = gltf.scene;
+            model.position.set(0, 0, -20);
+            scene.add(model);
+        }, undefined, function(error) {
+            console.error(error);
+        });
+
+        // Directional light
+        let directionalLight = new THREE.DirectionalLight(0xffffff, 1.5);  // White light, 100% intensity
+        directionalLight.position.set(1, 1, 1);  // Position the light above the model
+        scene.add(directionalLight);
+
+        // カメラの位置
+        camera.position.set(5, 5, 10);  // Move camera back and up
+        camera.lookAt(scene.position);  // Point camera at the sce
+
+        // 複製のアニメーション
+        let xOffset = 0; // モデルのX軸方向のオフセットを追跡する変数
+
+        function duplicateModel() {
+            if (model) {
+                let clonedModel = model.clone();
+                xOffset += 1; // オフセットを増やす
+                clonedModel.position.z += xOffset; // 更新されたオフセットを使用して位置を設定
+                scene.add(clonedModel);
+            }
+        }
+
+        // 5秒ごとにモデルを複製して配置
+        setInterval(duplicateModel, 5000);
+
+
+        // アニメーション
+        function animate() {
+            requestAnimationFrame(animate);
+            // ここでモデルをアニメーションさせる（回転させるなど）
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        // canvasのサイズ変更
+        window.addEventListener('resize', () => {
+          renderer.setSize(window.innerWidth, window.innerHeight);
+          camera.aspect = window.innerWidth / window.innerHeight;
+          camera.updateProjectionMatrix();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Model Viewer</title>
+
+    <style>
+      #myCanvas {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: -1; /* 他の要素の背景に配置 */
+      }
+      p {
+        font-size:clamp(14px, 1.5vw, 18px);
+      }
+      .object {
+        position: relative;
+      }
+    </style>
+</head>
+<body>
+	<div class="object">
+		<h1>こちらはテストサイトです。</h1>
+		<p>ダミーテキスト</p>
+    <img src="../parcel/model/image/01.JPEG" alt="">
+    <canvas id="myCanvas"></canvas>
+	</div>
+
+    <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/build/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/examples/js/loaders/GLTFLoader.js"></script>
+    <script>
+				var canvas = document.getElementById('myCanvas');
+
+        var scene = new THREE.Scene();
+        // var camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+				var camera = new THREE.PerspectiveCamera(75, canvas.width / canvas.height, 0.1, 1000);
+        var renderer = new THREE.WebGLRenderer({ antialias: true });
+        // renderer.setSize(window.innerWidth, window.innerHeight);
+				renderer.setSize(canvas.width, canvas.height);
+				renderer.outputEncoding = THREE.sRGBEncoding;
+        document.body.appendChild(renderer.domElement);
+
+				// Ambient light
+        var ambientLight = new THREE.AmbientLight(0xffffff, 0.5);  // White light, 50% intensity
+        scene.add(ambientLight);
+
+        // Directional light
+        var directionalLight = new THREE.DirectionalLight(0xffffff, 1);  // White light, 100% intensity
+        directionalLight.position.set(0, 1, 0);  // Position the light above the model
+        scene.add(directionalLight);
+
+        var loader = new THREE.GLTFLoader();
+        loader.load('../parcel/model/sample01.glb', function (gltf) {
+            scene.add(gltf.scene);
+            animate();
+        }, undefined, function (error) {
+            console.error(error);
+        });
+
+				// Adjust camera position
+        camera.position.set(5, 5, 10);  // Move camera back and up
+        camera.lookAt(scene.position);  // Point camera at the scene
+
+        function animate() {
+            requestAnimationFrame(animate);
+            renderer.render(scene, camera);
+        }
+    </script>
+</body>
+</html>
