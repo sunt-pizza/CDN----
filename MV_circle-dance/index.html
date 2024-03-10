@@ -9,8 +9,15 @@
       }
     </script>
     <script type="module">
+      //===============================================================
+      // Import Library
+      //===============================================================
       import * as THREE from "three";
 
+
+      //===============================================================
+      // Create Canvas
+      //===============================================================
       // サイズを指定
       // const width = 960;
       const width = window.innerWidth;
@@ -35,21 +42,35 @@
 
       window.addEventListener('resize', onWindowResize, false);
 
-      // シーンを作成
+
+      //===============================================================
+      // Create Scene
+      //===============================================================
       const scene = new THREE.Scene();
 
-      // カメラを作成
+
+      //===============================================================
+      // Create Camera
+      //===============================================================
       const camera = new THREE.PerspectiveCamera(45, width / height);
 
       // カメラの方向を指定する
       camera.lookAt(new THREE.Vector3(0, 0, 0));
 
+      
+      //===============================================================
+      // Create Light
+      //===============================================================
       // 平行光源を作成
       const directionalLight = new THREE.DirectionalLight(0xffffff);
       directionalLight.position.set(1, 1, 1);
       // シーンに追加
       scene.add(directionalLight);
 
+
+      //===============================================================
+      // Create Object
+      //===============================================================
       // マテリアルを作成
       const material = new THREE.MeshStandardMaterial({
         map: new THREE.TextureLoader().load("assets/img/line.png"),
@@ -61,7 +82,89 @@
       const earthMesh = new THREE.Mesh(geometry, material);
       scene.add(earthMesh);
 
+      //球体のnameを設定
+      earthMesh.name = 'earthMesh';
 
+
+      //===============================================================
+      // Add Link
+      //===============================================================
+      // マウス座標の取得
+      const container = document.querySelector('#myCanvas');
+      let mouse;
+      let raycaster = new THREE.Raycaster();
+      let clickFlg = false;
+      let moveFlg = false;
+
+      setControll();
+
+      function setControll() {
+
+        // マウス座標管理用のベクトル
+        mouse = new THREE.Vector2();
+
+        // マウスイベントを登録
+        container.addEventListener('mousemove', handleMouseMove);
+        container.addEventListener('click', handleClick);
+
+        function handleMouseMove(event){
+          moveFlg = true;
+          const element = event.currentTarget;
+          const x = event.clientX - element.offsetLeft;
+          const y = event.clientY - element.offsetTop;
+          const w = element.offsetWidth;
+          const h = element.offsetHeight;
+          mouse.x = (x/w)*2-1;
+          mouse.y = (y/h)*2+1;
+        }
+
+        function handleClick(event){
+          if(clickFlg){
+            window.open('https://www.google.com/');
+          }
+        }
+
+        function rendering() {
+        requestAnimationFrame(rendering);
+
+        // マウス位置からまっすぐに伸びる光線ベクトルを生成
+        raycaster.setFromCamera(mouse, camera);
+        // 光線と交差したオブジェクトを取得
+        const intersects = raycaster.intersectObjects(sence.children,false);
+
+        // 光線と交差したオブジェクトがある場合
+        if(intersects.lenght > 0) {
+          // 交差したオブジェクトを取得
+          const obj = intersects[0].object;
+
+          // 光線が球体と交差していた場合
+          if(obj.name == 'earthMesh' && moveFlg) {
+              clickFlg = true;
+            } else {
+            clickFlg = false;
+          }
+        } else {
+          clickFlg = false;
+        }
+
+        renderer.render(scene, camera);
+        }
+      }
+
+
+
+      // オブジェクトをクリック
+
+      
+
+      
+
+      
+
+
+      //===============================================================
+      // Create stardust
+      //===============================================================
       // 星屑を作成します (カメラの動きをわかりやすくするため)
       createStarField();
 
@@ -95,12 +198,21 @@
         // scene.add(mesh);
       }
 
+
+      //===============================================================
+      // Create Animation
+      //===============================================================
       tick();
 
       // 毎フレーム時に実行されるループイベントです
       function tick() {
-        // rot += 0.5;
+        rot += 0.5;
         const radian = (rot * Math.PI) / 180;
+        const sec = performance.now() / 1000; // ミリ秒から秒に変換
+
+        earthMesh.rotation.x = sec * (Math.PI / 4);
+        earthMesh.rotation.y = sec * (Math.PI / 4);
+
         // 角度に応じてカメラの位置を設定
         camera.position.x = 1000 * Math.sin(radian);
         camera.position.z = 1000 * Math.cos(radian);
@@ -112,6 +224,7 @@
         renderer.render(scene, camera);
 
         requestAnimationFrame(tick);
+        
       }
     </script>
   </head>
